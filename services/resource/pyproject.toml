@@ -1,0 +1,23 @@
+[project]
+name = "resource"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
+    "cryptography>=46.0.6",
+    "fastapi-cache2>=0.2.2",
+    "fastapi-pagination>=0.15.12",
+    "fastapi[standard]>=0.135.2",
+    "pydantic>=2.12.5",
+    "pyjwt>=2.12.1",
+    "redis>=7.4.0",
+    "sqlalchemy>=2.0.48",
+]
+
+[dependency-groups]
+dev = [
+    "flake8>=7.3.0",
+]

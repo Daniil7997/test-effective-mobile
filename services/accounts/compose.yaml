@@ -1,0 +1,21 @@
+services:
+  accounts_db:
+    extends:
+      file: base.yaml
+      service: accounts_db
+
+  accounts_service:
+    extends:
+      file: base.yaml
+      service: accounts_service
+    build:
+      context: .
+      target: production
+    command: sh -c "alembic upgrade head && python -m scripts.seeds && fastapi dev app/main.py --host 0.0.0.0 --port 8081"
+
+volumes:
+  accounts_db_data:
+
+networks:
+  app_network:
+    driver: bridge

@@ -1,0 +1,62 @@
+services:
+  accounts_db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: MyDatabase
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1111
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d MyDatabase"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    container_name: accounts_db
+    volumes:
+      - accounts_db_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+
+  accounts_service:
+    environment:
+      DB_HOST: accounts_db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: 1111
+      DB_NAME: MyDatabase
+      IS_TEST_DB: ${IS_TEST_DB:-False}
+      PRIVATE_KEY_HEX: 5211bcdbbbdabead489d1c44e95b1ff4fb38e2356f28b93f74ded9be0d54b26e
+    build:
+      context: .
+      target: production
+    container_name: accounts_service
+    depends_on:
+      accounts_db:
+        condition: service_healthy
+    # command будет переопределён.
+    command: sh -c "alembic upgrade head && fastapi dev app/main.py --host 0.0.0.0 --port 8081"
+    volumes:
+      - .:/project
+    # ports:
+    #   - "8081:8081"
+    networks:
+      - app_network
+
+volumes:
+  accounts_db_data:
+
+networks:
+  app_network:
+    driver: bridge
+
+
+# Для CI "command" переопределяется в /accounts/compose.test.yaml
+# указанные ниже команды для удобства локальной разработки и тестировани.(copy-past)
+
+# запуск сервера: 
+# - command: sh -c "alembic upgrade head && fastapi dev app/main.py --host 0.0.0.0 --port 8081"
+
+# запуск теста:
+# command: sh -c "alembic upgrade head && python -m pytest -s -v"
+
+# проверка покрытия тестов:
+# command: sh -c "alembic upgrade head && python -m pytest --cov=app --cov-report=term-missing"

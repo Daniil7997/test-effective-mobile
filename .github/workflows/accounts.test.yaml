@@ -1,0 +1,53 @@
+name: Run Tests
+
+on:
+  push:
+    paths:
+      - 'services/accounts/**'
+  pull_request:
+    paths:
+      - 'services/accounts/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: .env.ci.test
+    env:
+      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_PASS: ${{ secrets.DB_PASS }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      DB_USER: ${{ secrets.DB_USER }}
+      PRIVATE_KEY_HEX: ${{ secrets.PRIVATE_KEY_HEX }}
+      
+      DB_HOST: ${{ vars.DB_HOST }}
+      IS_TEST_DB: ${{ vars.IS_TEST_DB }}
+      BUILD_TARGET: ${{ vars.BUILD_TARGET }}
+  
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: create .env
+        working-directory: ./services/accounts
+        run: |
+          mkdir -p envs
+          cat <<EOF > envs/.env.ci.test
+          DB_HOST=$DB_HOST
+          DB_NAME=$DB_NAME
+          DB_PASS=$DB_PASS
+          DB_PORT=$DB_PORT
+          DB_USER=$DB_USER
+          IS_TEST_DB=$IS_TEST_DB
+          PRIVATE_KEY_HEX=$PRIVATE_KEY_HEX
+          BUILD_TARGET=$BUILD_TARGET
+          EOF
+
+      - name: compose.yaml + compose.test.yaml up
+        working-directory: ./services/accounts
+        run: |
+          docker compose \
+            -f compose.test.yaml \
+            --env-file envs/.env.ci.test \
+            up \
+            --build \
+            --exit-code-from accounts_service

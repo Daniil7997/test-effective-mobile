@@ -1,0 +1,41 @@
+name: test_accounts_service
+
+services:
+  accounts_db:
+    extends:
+      file: base.yaml
+      service: accounts_db
+    environment:
+      POSTGRES_DB: MyDatabaseTEST
+    container_name: test_accounts_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d MyDatabaseTEST"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - test_accounts_db_data:/var/lib/postgresql/data
+
+  accounts_service:
+    extends:
+      file: base.yaml
+      service: accounts_service
+    environment:
+      DB_HOST: accounts_db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: 1111
+      DB_NAME: MyDatabaseTEST
+      IS_TEST_DB: True
+    container_name: test_accounts_service
+    build:
+      context: .
+      target: test
+    command: sh -c "alembic upgrade head && python -m pytest --cov=app --cov-report=term-missing"
+
+volumes:
+  test_accounts_db_data:
+
+networks:
+  app_network:
+    driver: bridge

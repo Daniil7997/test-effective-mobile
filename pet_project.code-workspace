@@ -1,0 +1,16 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "services/accounts"
+        },
+        {
+            "path": "services/resource"
+        }
+    ],
+    "settings": {
+        "editor.rulers": [79, 72]
+    }
+}
